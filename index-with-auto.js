@@ -7,24 +7,23 @@ function connect(callback) {
 
 function findEveryone(callback, {db}) {
   const people = db.collection('people')
-  people.find().toArray((err, everyone) => {
-    if (err) {
-      callback(err)
-    } else {
-      callback(null, everyone.map( x => x.name ))
-    }
-  })
+  people.find().toArray((err, everyone) => { callback(err, everyone) })
+}
+function extractPersonName(callback, {everyone}){
+  callback(null, everyone.map((p)=> p.name));
 }
 
 const tasks = {
   db: connect,
-  everyone: ['db', findEveryone]
+  everyone: ['db', findEveryone],
+  names: ['everyone', extractPersonName]
 }
-async.auto(tasks, (err, {db, everyone}) => {
-  if (err) {
-    console.log('Something went wrong', err)
-  } else {
-    console.log(everyone)
-  }
+async.auto(tasks, (err, {db, names}) => {
   db && db.close()
+  if (err) {
+    console.log('Something went wrong', err);
+    return;
+  }
+  console.log(names)
+  
 })
